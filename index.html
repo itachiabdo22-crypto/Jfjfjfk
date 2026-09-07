@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ff4b9b">
+<title>رانيا ♡ عالمي الصغير</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #10040d;
+    font-family: Arial, "Tahoma", sans-serif;
+}
+
+body {
+    position: relative;
+}
+
+.screen {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: #10040d;
+}
+
+.screen.active {
+    display: flex;
+    animation: screenAppear .65s cubic-bezier(.2,.8,.2,1);
+}
+
+@keyframes screenAppear {
+    0% { opacity: 0; transform: scale(1.025); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.scene {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.scene img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* الأزرار التفاعلية - تم تفعيل الاستجابة للمس */
+.hotspot {
+    position: absolute;
+    border: 0;
+    outline: none;
+    background: rgba(255, 255, 255, 0.001); /* لضمان استجابة الأيفون للمس */
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    z-index: 50;
+    pointer-events: auto !important;
+}
+
+.hotspot:active {
+    background: rgba(255, 75, 155, 0.2);
+}
+
+/* منطقة كلمة السر */
+.passwordArea {
+    position: absolute;
+    left: 10%;
+    width: 80%;
+    top: 55%;
+    z-index: 60;
+}
+
+#password {
+    width: 100%;
+    height: 50px;
+    border-radius: 25px;
+    border: 2px solid rgba(255, 180, 210, 0.8);
+    outline: none;
+    background: rgba(20, 3, 18, 0.85);
+    backdrop-filter: blur(8px);
+    color: white;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    font-family: inherit;
+    box-shadow: 0 0 20px rgba(255, 80, 160, 0.4);
+}
+
+#password::placeholder {
+    color: rgba(255, 220, 235, 0.7);
+}
+
+.passwordButton {
+    position: absolute;
+    left: 15%;
+    width: 70%;
+    top: 66%;
+    height: 55px;
+    z-index: 61;
+}
+
+.passwordError {
+    position: absolute;
+    top: 48%;
+    left: 10%;
+    width: 80%;
+    height: 30px;
+    text-align: center;
+    color: #ff9ebb;
+    font-size: 15px;
+    font-weight: bold;
+    text-shadow: 0 2px 8px #000;
+    z-index: 62;
+}
+
+/* الستارة */
+#curtain {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+#curtain.show {
+    display: block;
+}
+
+.curtain {
+    position: absolute;
+    top: -5%;
+    width: 53%;
+    height: 110%;
+    background:
+        radial-gradient(circle at 25% 15%, #ffb4d3 0 10px, transparent 11px),
+        radial-gradient(circle at 70% 30%, #ff3d91 0 17px, transparent 18px),
+        radial-gradient(circle at 40% 65%, #ff87b7 0 12px, transparent 13px),
+        linear-gradient(90deg, #571331, #9e2157, #ed3e87, #ff69aa);
+    box-shadow: 0 0 50px rgba(255,50,145,.75);
+    transition: 1.8s cubic-bezier(.7,0,.15,1);
+}
+
+.curtain.left { right: 50%; transform-origin: right; }
+.curtain.right { left: 50%; transform-origin: left; }
+
+#curtain.open .curtain.left { transform: translateX(110%) rotate(7deg); }
+#curtain.open .curtain.right { transform: translateX(-110%) rotate(-7deg); }
+
+/* الجسيمات */
+.particle {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    font-size: var(--size);
+    animation: explode var(--duration) cubic-bezier(.15,.7,.2,1) forwards;
+}
+
+@keyframes explode {
+    0% { opacity: 0; transform: translate(0,0) scale(.15) rotate(0deg); }
+    15% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--x), var(--y)) scale(1.25) rotate(600deg); }
+}
+
+/* الرسالة المصنعة */
+#message {
+    position: fixed;
+    z-index: 11000;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%) scale(.7);
+    width: min(85%, 500px);
+    padding: 22px;
+    border-radius: 25px;
+    background: rgba(72, 8, 45, 0.95);
+    border: 1.5px solid rgba(255, 150, 200, 0.9);
+    box-shadow: 0 25px 80px rgba(0,0,0,.8), 0 0 40px rgba(255,70,160,.5);
+    color: white;
+    text-align: center;
+    font-size: 18px;
+    line-height: 1.9;
+    opacity: 0;
+    pointer-events: none;
+    transition: .35s ease;
+}
+
+#message.show {
+    opacity: 1;
+    transform: translate(-50%,-50%) scale(1);
+}
+
+#flash {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: white;
+    pointer-events: none;
+    opacity: 0;
+}
+
+#flash.active {
+    animation: flashAnimation .7s ease;
+}
+
+@keyframes flashAnimation {
+    0% { opacity: 0; }
+    20% { opacity: .8; }
+    100% { opacity: 0; }
+}
+
+@media(max-width:600px){
+    #password { height: 45px; font-size: 16px; }
+    #message { font-size: 16px; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- SCREEN 1 -->
+<section class="screen active" id="screen1">
+  <div class="scene">
+    <img src="screen1.jpg" alt="رانيا">
+    <div id="passwordError" class="passwordError"></div>
+    <div class="passwordArea">
+      <input id="password" type="password" placeholder="أدخلي كلمة السر هنا" autocomplete="off">
+    </div>
+    <button class="hotspot passwordButton" onclick="unlock()" aria-label="فتح الموقع"></button>
+  </div>
+</section>
+
+<!-- SCREEN 2 -->
+<section class="screen" id="screen2">
+  <div class="scene">
+    <img src="screen2.jpg" alt="رسالة رانيا">
+    <button class="hotspot" style="left:0; width:100%; top:0; height:100%;" onclick="goTo(3)" aria-label="التالي"></button>
+  </div>
+</section>
+
+<!-- SCREEN 3 -->
+<section class="screen" id="screen3">
+  <div class="scene">
+    <img src="screen3.jpg" alt="رسالة حب">
+    <button class="hotspot" style="left:0; width:100%; top:0; height:100%;" onclick="goTo(4)" aria-label="التالي"></button>
+  </div>
+</section>
+
+<!-- SCREEN 4 -->
+<section class="screen" id="screen4">
+  <div class="scene">
+    <img src="screen4.jpg" alt="المفاجأة">
+    <!-- YES -->
+    <button class="hotspot" style="right:8%; width:40%; top:50%; height:25%;" onclick="yesChoice()" aria-label="نعم"></button>
+    <!-- NO -->
+    <button id="noButton" class="hotspot" style="left:8%; width:40%; top:50%; height:25%;" onclick="noChoice()" aria-label="لا"></button>
+  </div>
+</section>
+
+<!-- SCREEN 5 -->
+<section class="screen" id="screen5">
+  <div class="scene">
+    <img src="screen5.jpg" alt="هل أنت متأكدة">
+    <button class="hotspot" style="left:15%; width:70%; top:50%; height:25%;" onclick="confirmChoice()" aria-label="تأكيد"></button>
+  </div>
+</section>
+
+<!-- SCREEN 6 -->
+<section class="screen" id="screen6">
+  <div class="scene">
+    <img src="screen6.jpg" alt="الهدية">
+    <button class="hotspot" style="left:10%; width:80%; top:30%; height:50%;" onclick="openGift()" aria-label="فتح الهدية"></button>
+  </div>
+</section>
+
+<!-- SCREEN 7 -->
+<section class="screen" id="screen7">
+  <div class="scene">
+    <img src="screen7.jpg" alt="حديقة رانيا">
+    <button class="hotspot" style="right:4%; width:29%; top:16%; height:29%;" onclick="flower(1)"></button>
+    <button class="hotspot" style="right:35%; width:29%; top:16%; height:29%;" onclick="flower(2)"></button>
+    <button class="hotspot" style="left:4%; width:29%; top:16%; height:29%;" onclick="flower(3)"></button>
+    <button class="hotspot" style="right:4%; width:29%; top:50%; height:29%;" onclick="flower(4)"></button>
+    <button class="hotspot" style="right:35%; width:29%; top:50%; height:29%;" onclick="flower(5)"></button>
+    <button class="hotspot" style="left:4%; width:29%; top:50%; height:29%;" onclick="flower(6)"></button>
+    <button class="hotspot" style="left:5%; width:90%; bottom:2%; height:15%;" onclick="goTo(8)"></button>
+  </div>
+</section>
+
+<!-- SCREEN 8 -->
+<section class="screen" id="screen8">
+  <div class="scene">
+    <img src="screen8.jpg" alt="ذكريات رانيا">
+    <button class="hotspot" style="left:0; width:100%; top:0; height:100%;" onclick="goTo(9)"></button>
+  </div>
+</section>
+
+<!-- SCREEN 9 -->
+<section class="screen" id="screen9">
+  <div class="scene">
+    <img src="screen9.jpg" alt="رانيا">
+    <button class="hotspot" style="left:10%; width:80%; bottom:5%; height:20%;" onclick="finale()"></button>
+  </div>
+</section>
+
+<div id="curtain">
+  <div class="curtain left"></div>
+  <div class="curtain right"></div>
+</div>
+
+<div id="message"></div>
+<div id="flash"></div>
+
+<script>
+const PASSWORD = "الحوى";
+
+function goTo(number){
+    document.querySelectorAll(".screen").forEach(screen => screen.classList.remove("active"));
+    const target = document.getElementById("screen"+number);
+    if(target){
+        target.classList.add("active");
+    }
+    window.scrollTo(0,0);
+}
+
+function unlock(){
+    const input = document.getElementById("password");
+    const error = document.getElementById("passwordError");
+
+    if(input.value.trim() === PASSWORD){
+        error.textContent = "تم فتح عالم رانيا... ❤️";
+        burst(100);
+
+        const curtain = document.getElementById("curtain");
+        curtain.classList.add("show");
+
+        setTimeout(()=>{ curtain.classList.add("open"); }, 50);
+        setTimeout(()=>{ goTo(2); }, 850);
+        setTimeout(()=>{
+            curtain.classList.remove("open");
+            curtain.classList.remove("show");
+        }, 2600);
+    } else {
+        error.textContent = "كلمة السر غير صحيحة... 🌷";
+        input.value="";
+        input.focus();
+
+        input.animate([
+            { transform: "translateX(0)" },
+            { transform: "translateX(-10px)" },
+            { transform: "translateX(10px)" },
+            { transform: "translateX(-7px)" },
+            { transform: "translateX(0)" }
+        ], { duration: 450 });
+
+        burst(10);
+    }
+}
+
+document.getElementById("password").addEventListener("keydown", function(event){
+    if(event.key === "Enter"){ unlock(); }
+});
+
+function yesChoice(){
+    burst(70);
+    setTimeout(()=>{ goTo(5); }, 350);
+}
+
+let noCount = 0;
+function noChoice(){
+    noCount++;
+    const button = document.getElementById("noButton");
+
+    if(noCount < 5){
+        button.style.position = "fixed";
+        button.style.left = (5 + Math.random()*75) + "vw";
+        button.style.top = (15 + Math.random()*70) + "vh";
+        burst(10);
+        showMessage([
+            "لا؟ 😭",
+            "متأكدة؟ 😂",
+            "حاولي مرة ثانية 🙈",
+            "لن أستسلم 😌",
+            "اضغطي نعم يا رانيا 💗"
+        ][noCount-1]);
+    } else {
+        button.style.display = "none";
+        showMessage("يبدو أن زر لا استسلم 😂💗");
+        setTimeout(()=>{ goTo(5); }, 1000);
+    }
+}
+
+function confirmChoice(){
+    megaBurst();
+    setTimeout(()=>{ goTo(6); }, 500);
+}
+
+function openGift(){
+    megaBurst();
+    showMessage("🎁 الهدية الحقيقية؟ أن تظلي دائمًا سعيدة يا رانيا 💗");
+    setTimeout(()=>{ goTo(7); }, 1800);
+}
+
+function flower(number){
+    const messages = {
+        1: "🌹 أنتِ أجمل وردة في عالمي.",
+        2: "🌷 وجودكِ يجعل أيامي أجمل.",
+        3: "🌸 ابتسامتكِ من أجمل الأشياء.",
+        4: "💗 لو كان للحب لون، لاخترت لكِ الوردي.",
+        5: "🧸 فيكِ طفلة صغيرة أحبها كثيرًا.",
+        6: "❤️ وأخيرًا... أحبكِ يا رانيا."
+    };
+    showMessage(messages[number]);
+    burst(45);
+}
+
+let messageTimer;
+function showMessage(text){
+    const message = document.getElementById("message");
+    message.textContent = text;
+    message.classList.add("show");
+    clearTimeout(messageTimer);
+    messageTimer = setTimeout(()=>{ message.classList.remove("show"); }, 2200);
+}
+
+function burst(amount){
+    const icons = ["❤️","💗","💖","💕","💞","🌹","🌷","🌸","✨","🎀","💘"];
+    for(let i=0; i<amount; i++){
+        const particle = document.createElement("div");
+        particle.className = "particle";
+        particle.textContent = icons[Math.floor(Math.random() * icons.length)];
+        particle.style.left = (50 + Math.random()*8-4) + "vw";
+        particle.style.top = (45 + Math.random()*10-5) + "vh";
+        particle.style.setProperty("--x", (Math.random()*1100-550) + "px");
+        particle.style.setProperty("--y", (Math.random()*900-600) + "px");
+        particle.style.setProperty("--duration", (1 + Math.random()*1.8) + "s");
+        particle.style.setProperty("--size", (15 + Math.random()*25) + "px");
+        document.body.appendChild(particle);
+        setTimeout(()=>{ particle.remove(); }, 4000);
+    }
+}
+
+function megaBurst(){
+    burst(180);
+    for(let i=0; i<7; i++){
+        setTimeout(()=>{ burst(35); }, i*180);
+    }
+}
+
+function finale(){
+    const flash = document.getElementById("flash");
+    flash.classList.remove("active");
+    void flash.offsetWidth;
+    flash.classList.add("active");
+    megaBurst();
+
+    for(let i=0; i<180; i++){
+        setTimeout(()=>{ floatingHeart(); }, i*18);
+    }
+
+    setTimeout(()=>{ showMessage("❤️ أحبكِ يا رانيا... من قلبي إلى قلبكِ 🌹"); }, 900);
+}
+
+function floatingHeart(){
+    const particle = document.createElement("div");
+    particle.className = "particle";
+    particle.textContent = ["❤️","💗","💖","💕","🌹","🌸","✨"][Math.floor(Math.random()*7)];
+    particle.style.left = Math.random()*100 + "vw";
+    particle.style.top = (80 + Math.random()*15) + "vh";
+    particle.style.setProperty("--x", (Math.random()*300-150) + "px");
+    particle.style.setProperty("--y", (-700 - Math.random()*500) + "px");
+    particle.style.setProperty("--duration", (2 + Math.random()*2.5) + "s");
+    particle.style.setProperty("--size", (15 + Math.random()*25) + "px");
+    document.body.appendChild(particle);
+    setTimeout(()=>{ particle.remove(); }, 5000);
+}
+
+setInterval(()=>{
+    if(Math.random() < .55){ floatingHeart(); }
+}, 850);
+</script>
+
+</body>
+</html>
